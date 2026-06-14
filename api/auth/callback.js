@@ -9,7 +9,9 @@ const redis = new Redis({
 const SESSION_TTL = 60 * 60 * 24 * 30; // 30 days
 
 export default async function handler(req, res) {
-  const { code, error } = new URL(req.url, process.env.APP_URL).searchParams;
+  const urlObj = new URL(req.url, process.env.APP_URL);
+  const code = urlObj.searchParams.get("code");
+  const error = urlObj.searchParams.get("error");
 
   if (error || !code) {
     res.writeHead(302, { Location: "/?error=strava_denied" });
