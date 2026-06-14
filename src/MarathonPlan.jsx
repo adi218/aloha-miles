@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { paceZones, scheduleColors, phaseColors, runTypeStyle, dayLabels, weeks, getSchedule } from "./data/plan.js";
+import { scheduleColors, phaseColors, runTypeStyle, dayLabels, getSchedule } from "./data/display.js";
 
-export default function MarathonPlan({ user, onLogout }) {
+export default function MarathonPlan({ plan, user, onLogout }) {
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [activeTab, setActiveTab] = useState("plan");
   const [filter, setFilter] = useState("All");
 
+  const { meta, weeks, paceZones } = plan;
   const phases = ["All","Base Build","Early Build","Mileage Build","Strength Phase","Peak Build","Peak","Taper","Race Week"];
   const filtered = filter === "All" ? weeks : weeks.filter(w => w.phase === filter);
   const selected = weeks.find(w => w.week === selectedWeek);
@@ -19,7 +20,7 @@ export default function MarathonPlan({ user, onLogout }) {
         <div style={{ maxWidth: 720, margin: "0 auto", position: "relative" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{ color: "#f5a623", fontSize: 10, letterSpacing: "0.35em", fontFamily: "monospace", marginBottom: 8, textTransform: "uppercase" }}>
-              Adi · Honolulu Marathon · Dec 13, 2026
+              {user.firstname} · {meta.race} · {meta.raceDate}
             </div>
             <button onClick={onLogout} style={{
               background: "none", border: "1px solid #3a3a5e", color: "#7070a0",
@@ -33,10 +34,10 @@ export default function MarathonPlan({ user, onLogout }) {
             26-Week Marathon Training Plan
           </h1>
           <p style={{ color: "#7070a0", fontSize: 13, margin: "0 0 20px" }}>
-            Starting June 1 · 11:00/mi easy pace · Run + Cycle + Strength + Yoga
+            {meta.subtitle}
           </p>
           <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-            {[["6→20","Peak miles"],["10:15","MP pace /mi"],["~4:30","Projected finish"],["Dec 13","Race day"]].map(([v,l]) => (
+            {[["6→20","Peak miles"],[meta.mpPace,"MP pace /mi"],[meta.projectedFinish,"Projected finish"],[meta.raceDate,"Race day"]].map(([v,l]) => (
               <div key={l}>
                 <div style={{ color: "#f5a623", fontSize: 18, fontWeight: 700 }}>{v}</div>
                 <div style={{ color: "#50508a", fontSize: 10, letterSpacing:"0.1em", textTransform:"uppercase", fontFamily:"monospace" }}>{l}</div>

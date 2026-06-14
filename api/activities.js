@@ -1,33 +1,8 @@
-import { Redis } from "@upstash/redis";
-
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
-});
-
-function parseCookies(req) {
-  return Object.fromEntries(
-    (req.headers.cookie || "").split(";")
-      .map(c => c.trim().split("="))
-      .filter(([k]) => k)
-      .map(([k, ...v]) => [k.trim(), v.join("=").trim()])
-  );
-}
+import { getSession, sendUnauthorized } from "./_lib/session.js";
 
 export default async function handler(req, res) {
-  const { sid } = parseCookies(req);
-
-  if (!sid) {
-    res.writeHead(401, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ error: "Not authenticated" }));
-  }
-
-  const session = await redis.get(`session:${sid}`);
-
-  if (!session) {
-    res.writeHead(401, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ error: "Session expired" }));
-  }
+  const session = await getSession(req);
+  if (!session) return sendUnauthorized(res);
 
   const stravaRes = await fetch(
     "https://www.strava.com/api/v3/athlete/activities?per_page=100",
@@ -41,7 +16,6 @@ export default async function handler(req, res) {
 
   const raw = await stravaRes.json();
 
-  // Return only the fields the frontend needs
   const activities = raw.map(a => ({
     id: a.id,
     name: a.name,

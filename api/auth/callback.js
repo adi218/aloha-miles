@@ -1,10 +1,5 @@
-import { Redis } from "@upstash/redis";
 import { randomUUID } from "crypto";
-
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN,
-});
+import { redis } from "../_lib/redis.js";
 
 const SESSION_TTL = 60 * 60 * 24 * 30; // 30 days
 
@@ -34,13 +29,6 @@ export default async function handler(req, res) {
   if (!data.access_token) {
     res.writeHead(302, { Location: "/?error=token_exchange_failed" });
     return res.end();
-  }
-
-  // Only allow the configured athlete
-  if (String(data.athlete.id) !== process.env.STRAVA_ATHLETE_ID) {
-    res.writeHead(403);
-    res.end("Access denied.");
-    return;
   }
 
   const sessionId = randomUUID();
